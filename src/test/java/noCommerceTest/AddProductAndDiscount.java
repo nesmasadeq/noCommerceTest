@@ -1,17 +1,12 @@
 package noCommerceTest;
 
 
-import static org.testng.Assert.assertTrue;import org.openqa.selenium.Keys;
 
 import java.time.Duration;
-import java.util.List;
-
 import org.openqa.selenium.By;
-import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.interactions.Action;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
@@ -24,6 +19,8 @@ public class AddProductAndDiscount {
 		WebDriver driver = new ChromeDriver();
 		driver.get("https://admin-demo.nopcommerce.com/");
 		driver.manage().window().maximize();
+		
+		String productName = "test product";
 		
 		//get email element
 		WebElement emailElement = driver.findElement(By.id("Email"));
@@ -137,11 +134,11 @@ public class AddProductAndDiscount {
 		
 		//get product name field
 		WebElement productNameElement = ProductInfoCard.findElement(By.id("Name"));
-		productNameElement.sendKeys("test product");
+		productNameElement.sendKeys(productName);
 		
 		//assertion for product name value
 		String currentProductName = productNameElement.getAttribute("value");
-		Assert.assertEquals(currentProductName, "test product");
+		Assert.assertEquals(currentProductName, productName);
 		
 		//get short description label
 		WebElement shortDescriptionLabel = ProductInfoCard.findElement(By.cssSelector("label[for=\"ShortDescription\"]"));
@@ -331,10 +328,59 @@ public class AddProductAndDiscount {
 		WebElement inventorySelectElement = inventoryCard.findElement(By.name("ManageInventoryMethodId"));
 		Select inventoryMethodSelect = new Select(inventorySelectElement);
 		inventoryMethodSelect.selectByValue("1");
+		
 		//assertion for selected element
 		WebElement inventoryMethodOption = inventoryMethodSelect.getFirstSelectedOption();
 		String inventorySelectedOption = inventoryMethodOption.getText();
 		Assert.assertEquals(inventorySelectedOption, "Track inventory");
+		
+		//get save button
+		WebElement saveButton = driver.findElement(By.name("save"));
+		
+		//assertion for save button style after clicking
+		Actions saveActions = new Actions(driver);
+		saveActions.clickAndHold(saveButton).perform();
+		String saveBackgroundColor = saveButton.getCssValue("background-color");
+//		Thread.sleep(3);
+//		Assert.assertEquals(saveBackgroundColor, "rgba(68, 129, 166, 1)");
+		saveButton.click();
+		
+		//check current url after save product
+		boolean checkSaveProductUrl = driver.getCurrentUrl().contains("Admin/Product/List");
+		Assert.assertTrue(checkSaveProductUrl);
+		
+		//check success message appears
+		WebElement successMessage = driver.findElement(By.className("alert-success"));
+		String successMessageString = successMessage.getText();
+		boolean checkSuccessMessage = successMessageString.contains("The new product has been added successfully.");
+		Assert.assertTrue(checkSuccessMessage);
+		
+		//check the product added appears in the list
+		WebElement productNameSearch = driver.findElement(By.id("SearchProductName"));
+		productNameSearch.sendKeys(productName);
+		WebElement searchButton= driver.findElement(By.id("search-products"));
+		searchButton.click();
+		
+		//check rows content
+		WebElement productTableContent = driver.findElement(By.xpath("//table[@id=\"products-grid\"]/tbody/tr"));
+		String productTableString = productTableContent.getText();
+		System.out.println(productTableString);
+		System.out.println(productName);
+		boolean checkProductName = productTableString.contains(productName);
+		//assertion for product name saved
+		Assert.assertTrue(checkProductName);
+		
+		//assertion for product sku saved
+		boolean checkSku = productTableString.contains("test-sku");
+		Assert.assertTrue(checkSku);
+		
+		//assertion for product price saved
+		boolean checkPrice = productTableString.contains("1000");
+		Assert.assertTrue(checkPrice);
+		
+		//assertion for product stock quantity saved
+		boolean checkStockQuantity = productTableString.contains("10000");
+		Assert.assertTrue(checkStockQuantity);
 		
 	}
 
