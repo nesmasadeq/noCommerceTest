@@ -242,7 +242,6 @@ public class AddProductAndDiscount {
 		selectedCategory.click();
 		categoriesLabel.click();
 		//assertion for selected category item
-		driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(7));
 		String selectedAttributeString = selectedCategory.getAttribute("aria-selected");
 		Assert.assertEquals(selectedAttributeString, "true");
 
@@ -294,6 +293,48 @@ public class AddProductAndDiscount {
 		String priceValueString = priceElement.getAttribute("aria-valuenow");
 		Assert.assertEquals(priceValueString, "1000");
 		
+		//get Inventory card
+		WebElement inventoryCard = driver.findElement(By.id("product-inventory"));
+		
+		//move to inventory card
+		Actions inventoryActions = new Actions(driver);
+		inventoryActions.moveToElement(inventoryCard).perform();
+				
+		//check if inventory card is collapsed
+		String inventoryCardCollapseString = pricesCard.getAttribute("class");
+		if(inventoryCardCollapseString.contains("collapsed-card")) {
+			inventoryCard.click();
+		}
+		
+		//assertion for inventory heading
+		WebElement inventoryHeading = inventoryCard.findElement(By.cssSelector("#product-inventory .card-title"));
+		String inventoryHeadingString =inventoryHeading.getText();
+		boolean checkInventoryHeading = inventoryHeadingString.contains("Inventory");
+		Assert.assertTrue(checkInventoryHeading);
+		
+		//get inventory method label
+		WebElement inventoryMethodLabel = inventoryCard.findElement(By.cssSelector("label[for=\"ManageInventoryMethodId\"]"));
+		
+		//assertion for inventory method label
+		Assert.assertEquals(inventoryMethodLabel.getText(), "Inventory method");
+		
+		//get tooltip icon for inventory method
+		WebElement inventoryMethodToolTip = driver.findElements(By.cssSelector("#product-inventory div[data-toggle=\"tooltip\"]")).get(0);
+		Actions inventoryActionProvider = new Actions(driver);
+		inventoryActionProvider.moveToElement(inventoryMethodToolTip).perform();
+		
+		//assertion for inventory method
+		String actualInventoryMethodTip= inventoryMethodToolTip.getAttribute("data-original-title");
+		Assert.assertEquals(actualInventoryMethodTip, "Select inventory method. There are three methods: Don’t track inventory, Track inventory and Track inventory by attributes. You should use Track inventory by attributes when the product has different combinations of these attributes and then manage inventory for these combinations.");
+		
+		//get inventory select element
+		WebElement inventorySelectElement = inventoryCard.findElement(By.name("ManageInventoryMethodId"));
+		Select inventoryMethodSelect = new Select(inventorySelectElement);
+		inventoryMethodSelect.selectByValue("1");
+		//assertion for selected element
+		WebElement inventoryMethodOption = inventoryMethodSelect.getFirstSelectedOption();
+		String inventorySelectedOption = inventoryMethodOption.getText();
+		Assert.assertEquals(inventorySelectedOption, "Track inventory");
 		
 	}
 
