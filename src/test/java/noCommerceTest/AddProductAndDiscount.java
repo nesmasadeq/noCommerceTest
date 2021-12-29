@@ -55,10 +55,10 @@ public class AddProductAndDiscount {
 		
 		//assertion for expand menu
 		WebElement expandClassElement = new WebDriverWait(driver, Duration.ofSeconds(5))
-		.until(ExpectedConditions.visibilityOf(driver.findElements(By.cssSelector("ul[data-widget=\"treeview\"] li")).get(1)));
+		.until(ExpectedConditions.elementToBeClickable(driver.findElements(By.cssSelector("ul[data-widget=\"treeview\"] li")).get(1)));
 		String expectedClassString =  expandClassElement.getAttribute("class");
 		boolean expandClass = expectedClassString.contains("menu-open");
-//		Assert.assertTrue(expandClass);
+		Assert.assertTrue(expandClass);
 		
 		//get product item
 		WebElement productElement = driver.findElement(By.cssSelector("li a[href*=\"Product/List\"]")); 
@@ -341,8 +341,7 @@ public class AddProductAndDiscount {
 		Actions saveActions = new Actions(driver);
 		saveActions.clickAndHold(saveButton).perform();
 		String saveBackgroundColor = saveButton.getCssValue("background-color");
-//		Thread.sleep(3);
-//		Assert.assertEquals(saveBackgroundColor, "rgba(68, 129, 166, 1)");
+		Assert.assertEquals(saveBackgroundColor, "rgba(0, 98, 204, 1)");
 		saveButton.click();
 		
 		//check current url after save product
@@ -364,10 +363,9 @@ public class AddProductAndDiscount {
 		//check rows content
 		WebElement productTableContent = driver.findElement(By.xpath("//table[@id=\"products-grid\"]/tbody/tr"));
 		String productTableString = productTableContent.getText();
-		System.out.println(productTableString);
-		System.out.println(productName);
-		boolean checkProductName = productTableString.contains(productName);
+		
 		//assertion for product name saved
+		boolean checkProductName = productTableString.contains(productName);
 		Assert.assertTrue(checkProductName);
 		
 		//assertion for product sku saved
@@ -381,6 +379,43 @@ public class AddProductAndDiscount {
 		//assertion for product stock quantity saved
 		boolean checkStockQuantity = productTableString.contains("10000");
 		Assert.assertTrue(checkStockQuantity);
+		
+		//navigate to promotions item link
+		WebElement pormotionElement = driver.findElement(By.linkText("Promotions"));
+		pormotionElement.click();
+		
+		//assertion for expand menu
+		WebElement expandPormotionClassElement = new WebDriverWait(driver, Duration.ofSeconds(5))
+		.until(ExpectedConditions.elementToBeClickable(driver.findElements(By.cssSelector("nav > ul > li.nav-item.has-treeview")).get(3)));
+		String expectedPormotionClassString =  expandPormotionClassElement.getAttribute("class");
+		boolean expandPormotionClass = expectedPormotionClassString.contains("menu-open");
+		Assert.assertTrue(expandPormotionClass);
+		
+		//get discount element
+		WebElement discountElement = driver.findElement(By.cssSelector("li a[href*=\"Admin/Discount/List\"]"));
+		discountElement.click();
+		
+		//assertion for discount url
+		boolean checkDiscountsUrl = driver.getCurrentUrl().contains("Admin/Discount/List");
+		Assert.assertTrue(checkDiscountsUrl);
+		
+		//assertion for discount page heading
+		WebElement discountHeading = driver.findElement(By.cssSelector(".content-header h1"));
+		String discountHeadingString = discountHeading.getText();
+		Assert.assertEquals(discountHeadingString,"Discounts");
+		//get add discount button
+		WebElement AddNewDisscountButton = driver.findElement(By.cssSelector("a[href*=\"Discount/Create\"]"));
+		
+		//assertion for add discount button style after clicking
+		Actions addDiscountActions = new Actions(driver);
+		addDiscountActions.clickAndHold(AddNewDisscountButton).perform();
+		String addDiscountBackgroundColor = AddNewDisscountButton.getCssValue("background-color");
+		Assert.assertEquals(addDiscountBackgroundColor, "rgba(0, 98, 204, 1)");
+		AddNewDisscountButton.click();
+		
+		//check create discount url
+		boolean checkCreateDiscountsUrl = driver.getCurrentUrl().contains("Discount/Create");
+		Assert.assertTrue(checkCreateDiscountsUrl);
 		
 	}
 
