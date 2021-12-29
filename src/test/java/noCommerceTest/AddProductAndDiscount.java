@@ -2,17 +2,12 @@ package noCommerceTest;
 
 
 
-import static org.testng.Assert.assertTrue;
 
 import java.time.Duration;
-import java.util.List;
-import java.util.Set;
 
 import org.openqa.selenium.By;
-import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.WindowType;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -47,10 +42,10 @@ public class AddProductAndDiscount {
 		//assertion for password typed
 		Assert.assertNotEquals(passwordElement.getAttribute("value"), "");
 		
-		//get submit button
+		//get login submit button
 		WebElement loginButton = driver.findElement(By.cssSelector("button[type=\"submit\"]"));		
 		
-		//assertion for button style
+		//assertion for login button style after clicking
 		Actions loginActions = new Actions(driver);
 		loginActions.clickAndHold(loginButton).build().perform();
 		String loginBackgroundColor = loginButton.getCssValue("background-color");
@@ -59,7 +54,7 @@ public class AddProductAndDiscount {
 		//click login button
 		loginButton.click();
 
-		//assertion for current url
+		//assertion for current url in home
 		boolean checkHomeUrl= driver.getCurrentUrl().contains("admin/");
 		Assert.assertTrue(checkHomeUrl);
 		
@@ -89,13 +84,18 @@ public class AddProductAndDiscount {
 		
 		//get new product button
 		WebElement newProductButton = driver.findElement(By.cssSelector("a[href*=\"Product/Create\"]"));
-		newProductButton.click();
 		
 		//assertion for button style
-//		String backgroundColor = newProductButton.getCssValue("background-color");
-//		Assert.assertEquals(backgroundColor, "#467e9f");
+		Actions newProductActions = new Actions(driver);
+		newProductActions.clickAndHold(newProductButton).build().perform();
+		String newProductBackgroundColor = newProductButton.getCssValue("background-color");
+		Thread.sleep(3000);
+		Assert.assertEquals(newProductBackgroundColor, "rgba(70, 126, 159, 1)");
 		
-		//assertion for current url
+		//click new product button
+		newProductButton.click();
+		
+		//assertion for create product url
 		boolean createProductUrl = driver.getCurrentUrl().contains("Admin/Product/Create");
 		Assert.assertTrue(createProductUrl);
 		
@@ -105,7 +105,7 @@ public class AddProductAndDiscount {
 		boolean checkAddNewProductHeading = newProductHeadingString.contains("Add a new product");
 		Assert.assertTrue(checkAddNewProductHeading);
 		
-		//assertion for back list
+		//assertion for back list in new product page
 		boolean checkBackList = newProductHeadingString.contains("back to product list");
 		Assert.assertTrue(checkBackList);
 		
