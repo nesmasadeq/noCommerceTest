@@ -2,11 +2,17 @@ package noCommerceTest;
 
 
 
+import static org.testng.Assert.assertTrue;
+
 import java.time.Duration;
+import java.util.List;
+import java.util.Set;
+
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.WindowType;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -23,6 +29,7 @@ public class AddProductAndDiscount {
 		
 		String productName = "test product";
 		String discountName = "test discount";
+		String discountPercentage ="50";
 		
 		//get email element
 		WebElement emailElement = driver.findElement(By.id("Email"));
@@ -529,11 +536,11 @@ public class AddProductAndDiscount {
 				
 		//get discount percentage field
 		WebElement discountPercentageElement = dicountInfoCard.findElement(By.cssSelector("#pnlDiscountPercentage input.k-formatted-value.k-input"));
-		discountPercentageElement.sendKeys("50");
+		discountPercentageElement.sendKeys(discountPercentage);
 		discountPercentageLabel.click();		
 		//assertion for percentage value
 		String currentPercentageDiscount = discountPercentageElement.getAttribute("aria-valuenow");
-		Assert.assertEquals(currentPercentageDiscount, "50");
+		Assert.assertEquals(currentPercentageDiscount, discountPercentage);
 		
 		//get discount amount label
 		WebElement discountAmountLabel = dicountInfoCard.findElement(By.cssSelector("label[for=\"MaximumDiscountAmount\"]"));
@@ -577,14 +584,17 @@ public class AddProductAndDiscount {
 		Assert.assertEquals(actualStartDateToolTip, "The start of the discount period in Coordinated Universal Time (UTC).");
 				
 		//get start date field
-		WebElement startDateElement = dicountInfoCard.findElement(By.id("StartDateUtc"));
-		startDateElement.sendKeys("12312021");
-		startDateElement.sendKeys(Keys.TAB);
-		startDateElement.sendKeys("1200AM");		
-		//assertion for percentage value
-		String currentStartDate= startDateElement.getAttribute("value");
-		System.out.println(currentStartDate);
-//		Assert.assertEquals(currentStartDate, "50");
+		WebElement startDateInput = dicountInfoCard.findElement(By.id("StartDateUtc"));
+		startDateInput.sendKeys("12/31/2021 12:00:00 AM");
+		
+		//assertion for start date input value	
+		String currentStartDate= startDateInput.getAttribute("value");
+		Assert.assertEquals(currentStartDate, "12/31/2021 12:00:00 AM");
+
+		//assertion the selected start date focused
+//		WebElement foucusedDatElement = dicountInfoCard.findElement(By.cssSelector("table > tbody > tr:nth-child(5) > td:nth-child(6)"));
+//		String focusedString = foucusedDatElement.getAttribute("aria-selected");
+//		Assert.assertTrue(focusedString.contains("true"));
 		
 		//get discount end date label
 		WebElement discountEndDateLabel = dicountInfoCard.findElement(By.cssSelector("label[for=\"EndDateUtc\"]"));
@@ -603,14 +613,123 @@ public class AddProductAndDiscount {
 		Assert.assertEquals(actualEndDateToolTip, "The end of the discount period in Coordinated Universal Time (UTC).");
 				
 		//get end date field
+		WebElement endDateButton = driver.findElement(By.cssSelector("span[aria-controls=\"EndDateUtc_dateview\"]"));
+		endDateButton.click();
 		WebElement endDateElement = dicountInfoCard.findElement(By.id("EndDateUtc"));
-		endDateElement.sendKeys("02282021");
-		endDateElement.sendKeys(Keys.TAB);
-		endDateElement.sendKeys("1200AM");		
+		endDateElement.sendKeys("02/28/2021 12:00:00 AM");		
+		
 		//assertion for percentage value
 		String currentEndDate= endDateElement.getAttribute("value");
-		System.out.println(currentEndDate);
-//				Assert.assertEquals(currentEndDate, "50");
+		Assert.assertEquals(currentEndDate, "02/28/2021 12:00:00 AM");
+		
+		//get save button
+		WebElement discountSaveButton = driver.findElement(By.name("save"));
+		//assertion for save button style after clicking
+		Actions discountSaveActions = new Actions(driver);
+		discountSaveActions.clickAndHold(discountSaveButton).perform();
+		String discountSaveBackgroundColor = discountSaveButton.getCssValue("background-color");
+//				Assert.assertEquals(discountSaveBackgroundColor, "rgba(0, 98, 204, 1)");
+		discountSaveButton.click();
+		//check current  url after adding new discount
+		boolean checkAddingDiscountUrl = driver.getCurrentUrl().contains("Discount/List");
+		Assert.assertTrue(checkAddingDiscountUrl);
+		
+		//check success message after add new discount
+		WebElement discountSuccessMessage = driver.findElement(By.className("alert-success"));
+		String discountSuccessMessageString = discountSuccessMessage.getText();
+		Assert.assertTrue(discountSuccessMessageString.contains("The new discount has been added successfully."));
+		
+		//get discount name search 
+		WebElement discountNameSearch = driver.findElement(By.id("SearchDiscountName"));
+		discountNameSearch.sendKeys(discountName);
+		
+		//get discount search button
+		WebElement discountSearchButton = driver.findElement(By.id("search-discounts"));
+		discountSearchButton.click();
+		
+		//get table content after search
+		WebElement discountTableContent = driver.findElement(By.xpath("//table[@id=\"discounts-grid\"]/tbody/tr"));
+		String discountTableContentString = discountTableContent.getText();
+		Assert.assertTrue(discountTableContentString.contains(discountName));
+		
+		//assertion for discount type for saved discount
+		Assert.assertTrue(discountTableContentString.contains("Assigned to products"));
+		Assert.assertTrue(discountTableContentString.contains(discountPercentage));
+		Assert.assertTrue(discountTableContentString.contains("12/31/2021 12:00:00 AM"));
+		Assert.assertTrue(discountTableContentString.contains("02/28/2021 12:00:00 AM"));
+		
+		//get edit button for saved discount
+		
+		WebElement editDiscountButton = driver.findElement(By.cssSelector("#discounts-grid tr:nth-child(1) td:nth-child(7) a"));
+		editDiscountButton.click();
+		
+		//assertion for edit discount url
+		boolean editDiscounttUrl = driver.getCurrentUrl().contains("Discount/Edit/");
+		Assert.assertTrue(editDiscounttUrl);
+		
+		//assertion for edit page heading
+		WebElement editDiscountHeading = driver.findElement(By.cssSelector("form h1"));
+		String editDiscountHeadingString = editDiscountHeading.getText();
+		Assert.assertTrue(editDiscountHeadingString.contains("Edit discount details - "+discountName));
+		
+		//get add new product button
+		WebElement addNewProductElement = driver.findElement(By.id("btnAddNewProduct"));
+		
+		//assertion for new product button style after clicking
+		Actions addNewProductActions = new Actions(driver);
+		addNewProductActions.clickAndHold(addNewProductElement).perform();
+		Thread.sleep(5);
+		String addProductBackgroundColor = addNewProductElement.getCssValue("background-color");
+//		Assert.assertEquals(addProductBackgroundColor, "rgba(0, 98, 204, 1)");
+		addNewProductElement.click();
+		
+		Set<String>windowStrings  = driver.getWindowHandles();
+		System.out.println(windowStrings);
+		
+		//switch to the new window
+//		driver.switchTo().window();
+
+		//search for saved product by name
+		WebElement searchByProductName = driver.findElement(By.id("SearchProductName"));
+		searchByProductName.sendKeys(productName);
+		
+		//click on search button
+		WebElement searchProductButton = driver.findElement(By.id("search-products"));
+		searchProductButton.click();
+		WebElement productCheckBox = driver.findElements(By.name("input[name=\"SelectedProductIds\"]")).get(0);
+		productCheckBox.click();
+		
+		//assertion if is checked
+		Assert.assertTrue(productCheckBox.isSelected());
+		
+		//save selected product
+		WebElement saveProductsButton = driver.findElement(By.name("save"));
+		saveProductsButton.click();
+		//switch to default window
+		
+		//assertion for discount product table content
+		WebElement discountProductTableContent = driver.findElement(By.cssSelector("#products-grid tbody tr"));
+		String discountProductTableContentString  = discountProductTableContent.getText();
+		Assert.assertTrue(discountProductTableContentString.contains(productName));
+		
+		//assertion for discount items number
+		WebElement productGridInfo = driver.findElement(By.id("products-grid_info"));
+		String productItemString = productGridInfo.getText();
+		Assert.assertTrue(productItemString.contains("1"));
+		
+		WebElement editSaveElement = driver.findElement(By.name("save"));
+		editSaveElement.click();
+		
+		//assertion for save button style after clicking
+		Actions editSaveActions = new Actions(driver);
+		editSaveActions.clickAndHold(editSaveElement).perform();
+		Thread.sleep(5);
+		String editSaveBackgroundColor = editSaveElement.getCssValue("background-color");
+//				Assert.assertEquals(editSaveBackgroundColor, "rgba(0, 98, 204, 1)")
+		
+		//assertion for url after save edits
+		boolean discountListUrl = driver.getCurrentUrl().contains("Discount/List/");
+		Assert.assertTrue(discountListUrl);
 	}
 
 }
