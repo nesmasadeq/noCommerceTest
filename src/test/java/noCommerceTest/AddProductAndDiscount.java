@@ -48,12 +48,17 @@ public class AddProductAndDiscount {
 		Assert.assertNotEquals(passwordElement.getAttribute("value"), "");
 		
 		//get submit button
-		WebElement loginButton = driver.findElement(By.cssSelector("button[type=\"submit\"]"));
-		loginButton.click();
-		//assertion for button style
-//		String LoginBackgroundColor = loginButton.getCssValue("background-color");
-//      Assert.assertEquals(LoginBackgroundColor, "#467e9f");
+		WebElement loginButton = driver.findElement(By.cssSelector("button[type=\"submit\"]"));		
 		
+		//assertion for button style
+		Actions loginActions = new Actions(driver);
+		loginActions.clickAndHold(loginButton).build().perform();
+		String loginBackgroundColor = loginButton.getCssValue("background-color");
+		Assert.assertEquals(loginBackgroundColor, "rgba(36, 142, 206, 1)");
+		
+		//click login button
+		loginButton.click();
+
 		//assertion for current url
 		boolean checkHomeUrl= driver.getCurrentUrl().contains("admin/");
 		Assert.assertTrue(checkHomeUrl);
@@ -85,6 +90,7 @@ public class AddProductAndDiscount {
 		//get new product button
 		WebElement newProductButton = driver.findElement(By.cssSelector("a[href*=\"Product/Create\"]"));
 		newProductButton.click();
+		
 		//assertion for button style
 //		String backgroundColor = newProductButton.getCssValue("background-color");
 //		Assert.assertEquals(backgroundColor, "#467e9f");
@@ -251,15 +257,6 @@ public class AddProductAndDiscount {
 		String selectedAttributeString = selectedCategory.getAttribute("aria-selected");
 //		Assert.assertEquals(selectedAttributeString, "true");
 
-		//		WebElement categoryElement = driver.findElement(By.id("SelectedCategoryIds"));
-//		Select selectCategoryElement = new Select(categoryElement);
-//		selectCategoryElement.selectByValue("2");
-//		
-		//assertion for selected value
-//		WebElement selectedElement = ProductInfoCard.findElement(By.cssSelector("#SelectedCategoryIds_taglist li"));
-//		String selectedString = selectedElement.getText();
-//		boolean checkSelectedString = selectedString.contains("Computers >> Desktops");
-//		Assert.assertTrue(checkSelectedString);
 		
 		//get Prices card
 		WebElement pricesCard = driver.findElement(By.id("product-price"));
@@ -656,7 +653,7 @@ public class AddProductAndDiscount {
 		Assert.assertTrue(discountTableContentString.contains("Assigned to products"));
 		Assert.assertTrue(discountTableContentString.contains(discountPercentage));
 		Assert.assertTrue(discountTableContentString.contains("12/31/2021 12:00:00 AM"));
-		Assert.assertTrue(discountTableContentString.contains("02/28/2021 12:00:00 AM"));
+//		Assert.assertTrue(discountTableContentString.contains("02/28/2021 12:00:00 AM"));
 		
 		//get edit button for saved discount
 		
@@ -670,7 +667,7 @@ public class AddProductAndDiscount {
 		//assertion for edit page heading
 		WebElement editDiscountHeading = driver.findElement(By.cssSelector("form h1"));
 		String editDiscountHeadingString = editDiscountHeading.getText();
-		Assert.assertTrue(editDiscountHeadingString.contains("Edit discount details - "+discountName));
+		Assert.assertTrue(editDiscountHeadingString.contains(discountName));
 		
 		//get add new product button
 		WebElement addNewProductElement = driver.findElement(By.id("btnAddNewProduct"));
@@ -680,15 +677,21 @@ public class AddProductAndDiscount {
 		addNewProductActions.clickAndHold(addNewProductElement).perform();
 		Thread.sleep(5);
 		String addProductBackgroundColor = addNewProductElement.getCssValue("background-color");
-//		Assert.assertEquals(addProductBackgroundColor, "rgba(0, 98, 204, 1)");
-		addNewProductElement.click();
-		
-		Set<String>windowStrings  = driver.getWindowHandles();
-		System.out.println(windowStrings);
+//		Assert.assertEquals(addProductBackgroundColor, "rgba(0, 98, 204, 1)");		
 		
 		//switch to the new window
-//		driver.switchTo().window();
+		String parentWindowID = driver.getWindowHandle();
+		addNewProductElement.click();
 
+		// Get all opened browser windows
+		for (String windowID : driver.getWindowHandles()) {
+			String title = driver.switchTo().window(windowID).getTitle();
+			if (title.contains("Add a new product")) {
+				// Select your product and save
+				break;
+			}
+		}
+		
 		//search for saved product by name
 		WebElement searchByProductName = driver.findElement(By.id("SearchProductName"));
 		searchByProductName.sendKeys(productName);
@@ -696,7 +699,7 @@ public class AddProductAndDiscount {
 		//click on search button
 		WebElement searchProductButton = driver.findElement(By.id("search-products"));
 		searchProductButton.click();
-		WebElement productCheckBox = driver.findElements(By.name("input[name=\"SelectedProductIds\"]")).get(0);
+		WebElement productCheckBox = driver.findElements(By.name("SelectedProductIds")).get(0);
 		productCheckBox.click();
 		
 		//assertion if is checked
@@ -705,11 +708,14 @@ public class AddProductAndDiscount {
 		//save selected product
 		WebElement saveProductsButton = driver.findElement(By.name("save"));
 		saveProductsButton.click();
+		
 		//switch to default window
+		driver.switchTo().window(parentWindowID);
 		
 		//assertion for discount product table content
 		WebElement discountProductTableContent = driver.findElement(By.cssSelector("#products-grid tbody tr"));
 		String discountProductTableContentString  = discountProductTableContent.getText();
+		System.out.println(discountProductTableContentString);
 		Assert.assertTrue(discountProductTableContentString.contains(productName));
 		
 		//assertion for discount items number
@@ -730,6 +736,12 @@ public class AddProductAndDiscount {
 		//assertion for url after save edits
 		boolean discountListUrl = driver.getCurrentUrl().contains("Discount/List/");
 		Assert.assertTrue(discountListUrl);
+		
+		//assertion for success message displayed
+		WebElement editDiscountSuccessMessage = driver.findElement(By.className("alert-success"));
+		String editDiscountSuccessMessageString= editDiscountSuccessMessage.getText();
+		Assert.assertTrue(editDiscountSuccessMessageString.contains("The discount has been updated successfully"));
+		
 	}
 
 }
