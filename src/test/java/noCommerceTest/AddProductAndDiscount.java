@@ -1,15 +1,17 @@
 package noCommerceTest;
 
 
-import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.assertTrue;import org.openqa.selenium.Keys;
 
 import java.time.Duration;
 import java.util.List;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.interactions.Action;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
@@ -104,7 +106,7 @@ public class AddProductAndDiscount {
 			MoodElement.click();
 		}
 		
-		//get first card heading label
+		//get Product info card 
 		WebElement ProductInfoCard = driver.findElement(By.cssSelector("div[data-card-name=\"product-info\"]"));
 		
 		//check if product info is collapsed
@@ -209,10 +211,10 @@ public class AddProductAndDiscount {
 		
 		//get and fill SKU field
 		WebElement skuElement = ProductInfoCard.findElement(By.id("Sku"));
-		productNameElement.sendKeys("test-sku");
+		skuElement.sendKeys("test-sku");
 		
 		//assertion for SKU value
-		String currenSku = skuElement.getText();
+		String currenSku = skuElement.getAttribute("value");
 		Assert.assertEquals(currenSku, "test-sku");
 		
 		//get categories label
@@ -222,7 +224,7 @@ public class AddProductAndDiscount {
 		Assert.assertEquals(categoriesLabel.getText(), "Categories");
 		
 		//get tooltip icon for categories
-		WebElement categoriesToolTip = driver.findElements(By.cssSelector("#product-details-area div[data-toggle=\"tooltip\"]")).get(4);
+		WebElement categoriesToolTip = driver.findElement(By.cssSelector("#SelectedCategoryIds_label+div[data-toggle=\"tooltip\"]"));
 		Actions categoriesActionProvider = new Actions(driver);
 		categoriesActionProvider.moveToElement(categoriesToolTip).perform();
 		
@@ -230,16 +232,67 @@ public class AddProductAndDiscount {
 		String actualCategoriesToolTip= categoriesToolTip.getAttribute("data-original-title");
 		Assert.assertEquals(actualCategoriesToolTip, "Choose categories. You can manage product categories by selecting Catalog > Categories.");
 		
-		//get and select category 
-		WebElement categoryElement = ProductInfoCard.findElement(By.id("SelectedCategoryIds"));
-		Select selectCategoryElement = new Select(catalogElement);
-		selectCategoryElement.selectByValue("2");
-		
+		//get and select category
+		WebElement categoryFeild= driver.findElements(By.cssSelector("#product-info div[role=\"listbox\"]")).get(0);
+		Actions categoryActions = new Actions(driver);
+		categoryActions.moveToElement(categoryFeild);
+		categoryFeild.click();
+		driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(7));
+		WebElement selectedCategory = driver.findElement(By.cssSelector("#SelectedCategoryIds_listbox li:nth-child(2)"));
+		selectedCategory.click();
+		categoriesLabel.click();
+		//assertion for selected category item
+		driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(7));
+		String selectedAttributeString = selectedCategory.getAttribute("aria-selected");
+		Assert.assertEquals(selectedAttributeString, "true");
+
+		//		WebElement categoryElement = driver.findElement(By.id("SelectedCategoryIds"));
+//		Select selectCategoryElement = new Select(categoryElement);
+//		selectCategoryElement.selectByValue("2");
+//		
 		//assertion for selected value
-		WebElement selectedElement = ProductInfoCard.findElement(By.cssSelector("#SelectedCategoryIds_taglist li"));
-		String selectedString = selectedElement.getText();
-		boolean checkSelectedString = selectedString.contains("Computers >> Desktops");
-		Assert.assertTrue(checkSelectedString);
+//		WebElement selectedElement = ProductInfoCard.findElement(By.cssSelector("#SelectedCategoryIds_taglist li"));
+//		String selectedString = selectedElement.getText();
+//		boolean checkSelectedString = selectedString.contains("Computers >> Desktops");
+//		Assert.assertTrue(checkSelectedString);
+		
+		//get Prices card
+		WebElement pricesCard = driver.findElement(By.cssSelector("div[data-card-name=\"product-price\"]"));
+				
+		//check if Prices card is collapsed
+		String pricesCardCollapseString = pricesCard.getAttribute("class");
+		if(pricesCardCollapseString.contains("collapsed-card")) {
+			ProductInfoCard.click();
+		}
+		
+		//assertion for prices heading
+		WebElement pricesHeading = pricesCard.findElement(By.cssSelector("div[data-card-name=\"product-price\"] .card-title"));
+		String pricesHeadingString =pricesHeading.getText();
+		boolean checkPricesHeading = pricesHeadingString.contains("Prices");
+		Assert.assertTrue(checkPricesHeading);
+		
+		//get price label
+		WebElement priceLabel = pricesCard.findElement(By.cssSelector("label[for=\"Price\"]"));
+		
+		//assertion for price label
+		Assert.assertEquals(priceLabel.getText(), "Price");
+		
+		//get tooltip icon for price
+		WebElement priceToolTip = driver.findElements(By.cssSelector("#product-price div[data-toggle=\"tooltip\"")).get(0);
+		Actions priceActionProvider = new Actions(driver);
+		priceActionProvider.moveToElement(priceToolTip).perform();
+		
+		//assertion for price tool tip
+		String actualPriceToolTip= priceToolTip.getAttribute("data-original-title");
+		Assert.assertEquals(actualPriceToolTip, "The price of the product. You can manage currency by selecting Configuration > Currencies.");
+		
+		//get and fill price field
+		WebElement priceElement = pricesCard.findElement(By.cssSelector("#product-price-area  input.k-formatted-value.k-input"));
+		priceElement.sendKeys("1000");
+		priceLabel.click();
+		//assertion for price value
+		String priceValueString = priceElement.getAttribute("aria-valuenow");
+		Assert.assertEquals(priceValueString, "1000");
 		
 		
 	}
